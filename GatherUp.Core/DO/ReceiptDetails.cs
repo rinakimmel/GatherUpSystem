@@ -1,6 +1,30 @@
-public record ReceiptDetails
+using System;
+using System.Xml.Serialization;
+
+namespace GatherUp.Core.DO
 {
-    public required string ReceiptNumber { get; init; }
-    public required decimal Amount { get; init; }
-    public required DateTime IssuedDate { get; init; }
+    public record ReceiptDetails
+    {
+        [XmlAttribute]
+        public string ReceiptNumber { get; init; }
+
+        [XmlAttribute]
+        public decimal Amount { get; init; }
+
+        [XmlAttribute]
+        public DateTime IssuedDate { get; init; }
+
+        [XmlElement]
+        public string? FilePath { get; init; }
+
+        public ReceiptDetails() : this("", 0, DateTime.Now, null) { }
+
+        public ReceiptDetails(string receiptNumber, decimal amount, DateTime issuedDate, string? filePath = null)
+        {
+            ReceiptNumber = receiptNumber;
+            Amount = amount;
+            IssuedDate = issuedDate;
+            FilePath = filePath;
+        }
+    }
 }

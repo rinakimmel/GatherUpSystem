@@ -1,75 +1,89 @@
-using System;
+﻿using System;
+using GatherUp.Core.DO;
+using GatherUp.Infrastructure.Data;
 
-class Program
+namespace GatherUp.Tests
 {
-    static void Main()
+    class Program
     {
-        // Create in-memory repositories
-        var managerRepo = new MemoryRepository<EventManager>();
-        var hostRepo = new MemoryRepository<EventHost>();
-        var participantRepo = new MemoryRepository<Participant>();
-        var eventRepo = new MemoryRepository<Event>();
-        var vendorRepo = new MemoryRepository<VendorAllocation>();
-
-        // Seed initial mock data (calls your Initialize.SeedAll)
-        Initialize.SeedAll(managerRepo, hostRepo, participantRepo, eventRepo, vendorRepo);
-
-        // Add 3 new participants
-        var p3 = new Participant
+        static void Main(string[] args)
         {
-            Id = 5,
-            Name = "Anna Katz",
-            Email = "anna.katz@example.com",
-            IsAttending = true,
-            HasPaid = false,
-            AmountContributed = 0.00m,
-            MailingPreferences = "Email"
-        };
+            Console.WriteLine("=== GatherUp System Initialization ===\n");
 
-        var p4 = new Participant
-        {
-            Id = 6,
-            Name = "Oren Bar",
-            Email = "oren.bar@example.com",
-            IsAttending = true,
-            HasPaid = true,
-            AmountContributed = 50.00m,
-            MailingPreferences = "Email"
-        };
+            // 1. יצירת אובייקטים מסוג ה-MemoryRepository (במקום XML בינתיים)
+            IRepository<EventManager> managerRepo = new MemoryRepository<EventManager>();
+            IRepository<EventHost> hostRepo = new MemoryRepository<EventHost>();
+            IRepository<Participant> participantRepo = new MemoryRepository<Participant>();
+            IRepository<Event> eventRepo = new MemoryRepository<Event>();
+            IRepository<Poll> pollRepo = new MemoryRepository<Poll>();
 
-        var p5 = new Participant
-        {
-            Id = 7,
-            Name = "Leah Mizrahi",
-            Email = "leah.mizrahi@example.com",
-            IsAttending = false,
-            HasPaid = false,
-            AmountContributed = 0.00m,
-            MailingPreferences = "Postal"
-        };
+            // 2. קריאה לפונקציית האיתחול עם המחלקות שיצרנו
+            Console.WriteLine("Seeding initial data...");
+            Initialize.SeedAll(managerRepo, hostRepo, participantRepo, eventRepo, pollRepo);
+            Console.WriteLine("✓ Initial data seeded successfully!\n");
 
-        participantRepo.Add(p3);
-        participantRepo.Add(p4);
-        participantRepo.Add(p5);
 
-        // Retrieve one participant by ID and print
-        var found = participantRepo.GetById(5);
-        Console.WriteLine("Retrieved participant (Id=5):");
-        if (found != null)
-        {
-            Console.WriteLine($"{found.Id}: {found.Name} <{found.Email}> Attending:{found.IsAttending} Paid:{found.HasPaid} Amount:{found.AmountContributed:C}");
-        }
-        else
-        {
-            Console.WriteLine("Participant not found.");
-        }
+            // 3. הוספת 3 משתתפים חדשים למערכת תוך שימוש בבנאים המוגנים (SetsRequiredMembers)
+            Console.WriteLine("Adding new participants...");
 
-        // Print all participants to verify
-        Console.WriteLine();
-        Console.WriteLine("All participants:");
-        foreach (var p in participantRepo.GetAll())
-        {
-            Console.WriteLine($"{p.Id}: {p.Name} <{p.Email}> Attending:{p.IsAttending} Paid:{p.HasPaid} Amount:{p.AmountContributed:C}");
+            var p3 = new Participant(0, "Anna Katz", "anna.katz@example.com")
+            {
+                IsAttending = true,
+                HasPaid = false,
+                AmountContributed = 0m,
+                MailingPreferences = MailingPreference.Everything
+            };
+
+            var p4 = new Participant(0, "Oren Bar", "oren.bar@example.com")
+            {
+                IsAttending = true,
+                HasPaid = true,
+                AmountContributed = 50m,
+                MailingPreferences = MailingPreference.ImportantUpdatesOnly
+            };
+
+            var p5 = new Participant(0, "Leah Mizrahi", "leah.mizrahi@example.com")
+            {
+                IsAttending = false,
+                HasPaid = false,
+                AmountContributed = 0m,
+                MailingPreferences = MailingPreference.None
+            };
+
+            participantRepo.Add(p3);
+            participantRepo.Add(p4);
+            participantRepo.Add(p5);
+            Console.WriteLine("✓ Added 3 new participants successfully!\n");
+
+
+            // 4. שליפת אחד המשתתפים לפי ה-Id שלו (נשלוף את אנה קץ שקיבלה Id 3)
+            Console.WriteLine("--- Retrieving Participant by ID ---");
+            var found = participantRepo.GetById(3);
+            if (found != null)
+            {
+                Console.WriteLine($"Found: {found.Name} (Email: {found.Email})");
+            }
+            else
+            {
+                Console.WriteLine("Participant not found.");
+            }
+            Console.WriteLine();
+
+
+            // 5. הדפסת רשימת כל המשתתפים למסך
+            Console.WriteLine("--- All Participants in System ---");
+            foreach (var p in participantRepo.GetAll())
+            {
+                // הוספת הצגת סטטוס ההגעה בצורה ברורה
+                string attendingStatus = p.IsAttending.HasValue
+                    ? (p.IsAttending.Value ? "Yes" : "No")
+                    : "Not Responded";
+
+                Console.WriteLine($"[ID: {p.Id}] {p.Name} | Email: {p.Email} | Attending: {attendingStatus} | Paid: {p.AmountContributed:C}");
+            }
+
+            Console.WriteLine("\n=== Tests Completed Successfully ===");
+            Console.ReadLine(); // משאיר את החלון פתוח כדי שתוכלי לקרוא את התוצאות
         }
     }
 }

@@ -10,7 +10,13 @@ public class MemoryRepository<T> : IRepository<T> where T : IEntity
     public void Add(T entity)
     {
         if (entity is null) throw new ArgumentNullException(nameof(entity));
-        lock (_sync) { _store.Add(entity); }
+
+        lock (_sync)
+        {
+            int newId = _store.Count == 0 ? 1 : _store.Max(x => x.Id) + 1;
+            typeof(T).GetProperty("Id")?.SetValue(entity, newId);
+            _store.Add(entity);
+        }
     }
 
     public T? GetById(int id)
