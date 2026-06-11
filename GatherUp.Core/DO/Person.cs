@@ -10,7 +10,7 @@ namespace GatherUp.Core.DO
     public abstract class Person : IEntity
     {
         [XmlAttribute]
-        public int Id { get; internal set; }
+        public int Id { get; set; }
 
         [XmlAttribute]
         public required string Name { get; set; }

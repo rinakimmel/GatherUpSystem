@@ -6,7 +6,7 @@ namespace GatherUp.Core.DO
     public class PollQuestion
     {
         [XmlAttribute]
-        public int Id { get; internal set; }
+        public int Id { get; set; }
 
         [XmlElement]
         public required string QuestionContent { get; set; }

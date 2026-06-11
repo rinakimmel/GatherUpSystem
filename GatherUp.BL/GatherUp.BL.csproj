@@ -1,16 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\GatherUp.Core\GatherUp.Core.csproj" />
-    <ProjectReference Include="..\GatherUp.Infrastructure\GatherUp.Infrastructure.csproj" />
-    <ProjectReference Include="..\GatherUp.BL\GatherUp.BL.csproj" />
   </ItemGroup>
 
 </Project>

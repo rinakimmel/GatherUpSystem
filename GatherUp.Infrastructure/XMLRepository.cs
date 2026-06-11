@@ -24,8 +24,8 @@ public class XMLRepository<T> : IRepository<T> where T : class, IEntity, new()
             throw new ArgumentNullException(nameof(entity));
 
         var items = LoadAll();
-        if (items.Any(x => x.Id == entity.Id))
-            throw new InvalidOperationException($"Entity with Id {entity.Id} already exists.");
+        int newId = items.Count == 0 ? 1 : items.Max(x => x.Id) + 1;
+        typeof(T).GetProperty("Id")?.SetValue(entity, newId);
 
         items.Add(entity);
         SaveAll(items);
