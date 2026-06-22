@@ -1,8 +1,11 @@
-public interface IRepository<T> where T : IEntity
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+public interface IRepository<T> where T : IEntity       
 {
-    void Add(T entity);
-    T? GetById(int id);
-    IEnumerable<T> GetAll();
-    void Update(T entity);
-    void Delete(int id);
-}
+    Task AddAsync(T entity);
+    Task<T?> GetByIdAsync(int id);
+    Task<IEnumerable<T>> GetAllAsync();
+    Task UpdateAsync(T entity);
+    Task DeleteAsync(int id);
+}                   

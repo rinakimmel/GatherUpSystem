@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 public class MemoryRepository<T> : IRepository<T> where T : IEntity
 {
     private readonly List<T> _store = new();
     private readonly object _sync = new();
 
-    public void Add(T entity)
+    public Task AddAsync(T entity)
     {
         if (entity is null) throw new ArgumentNullException(nameof(entity));
 
@@ -17,19 +18,20 @@ public class MemoryRepository<T> : IRepository<T> where T : IEntity
             typeof(T).GetProperty("Id")?.SetValue(entity, newId);
             _store.Add(entity);
         }
+        return Task.CompletedTask;
     }
 
-    public T? GetById(int id)
+    public Task<T?> GetByIdAsync(int id)
     {
-        lock (_sync) { return _store.FirstOrDefault(x => x.Id == id); }
+        lock (_sync) { return Task.FromResult(_store.FirstOrDefault(x => x.Id == id)); }
     }
 
-    public IEnumerable<T> GetAll()
+    public Task<IEnumerable<T>> GetAllAsync()
     {
-        lock (_sync) { return _store.ToList(); }
+        lock (_sync) { return Task.FromResult<IEnumerable<T>>(_store.ToList()); }
     }
 
-    public void Update(T entity)
+    public Task UpdateAsync(T entity)
     {
         if (entity is null) throw new ArgumentNullException(nameof(entity));
         lock (_sync)
@@ -38,14 +40,16 @@ public class MemoryRepository<T> : IRepository<T> where T : IEntity
             if (idx == -1) throw new KeyNotFoundException($"Entity with Id {entity.Id} not found.");
             _store[idx] = entity;
         }
+        return Task.CompletedTask;
     }
 
-    public void Delete(int id)
+    public Task DeleteAsync(int id)
     {
         lock (_sync)
         {
             var idx = _store.FindIndex(x => x.Id == id);
             if (idx != -1) _store.RemoveAt(idx);
         }
+        return Task.CompletedTask;
     }
 }

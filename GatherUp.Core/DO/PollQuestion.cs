@@ -9,7 +9,7 @@ namespace GatherUp.Core.DO
         public int Id { get; set; }
 
         [XmlElement]
-        public required string QuestionContent { get; set; }
+        public string QuestionContent { get; set; } = string.Empty;
 
         [XmlArray("ChoiceOptions")]
         [XmlArrayItem("Choice")]

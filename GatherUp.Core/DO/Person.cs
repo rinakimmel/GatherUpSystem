@@ -13,10 +13,10 @@ namespace GatherUp.Core.DO
         public int Id { get; set; }
 
         [XmlAttribute]
-        public required string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [XmlAttribute]
-        public required string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         public Person()
         {

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using GatherUp.Core.DO; // ודאי שמרחב השמות מיובא
+using System.Threading.Tasks;
+using GatherUp.Core.DO; // domain objects
+using GatherUp.Core; // IReceiptRepository
 
 namespace GatherUp.Infrastructure.Data
 {
-    public class ReceiptRepository
+    public class ReceiptRepository : IReceiptRepository
     {
         private readonly string _xmlFilePath;
         private readonly string _receiptsFolderPath;
@@ -27,80 +29,86 @@ namespace GatherUp.Infrastructure.Data
                 Directory.CreateDirectory(_receiptsFolderPath);
         }
 
-        public void Add(ReceiptDetails entity)
+        public Task AddAsync(ReceiptDetails entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-            // Copy file if provided
-            string? newFilePath = null;
-            if (!string.IsNullOrEmpty(entity.FilePath) && File.Exists(entity.FilePath))
+            return Task.Run(() =>
             {
-                var fileName = Path.GetFileName(entity.FilePath);
-                newFilePath = Path.Combine(_receiptsFolderPath, $"{entity.ReceiptNumber}_{fileName}");
-                File.Copy(entity.FilePath, newFilePath, true);
-            }
+                string? newFilePath = null;
+                if (!string.IsNullOrEmpty(entity.FilePath) && File.Exists(entity.FilePath))
+                {
+                    var fileName = Path.GetFileName(entity.FilePath);
+                    newFilePath = Path.Combine(_receiptsFolderPath, $"{entity.ReceiptNumber}_{fileName}");
+                    File.Copy(entity.FilePath, newFilePath, true);
+                }
 
-            // Load or create XML document
-            var doc = XMLDocManager.LoadDocument(_xmlFilePath);
-            if (doc.Root == null)
-                doc = XMLDocManager.CreateDocument("Receipts");
+                var doc = XMLDocManager.LoadDocument(_xmlFilePath);
+                if (doc.Root == null)
+                    doc = XMLDocManager.CreateDocument("Receipts");
 
-            // --- התיקון כאן: שימוש ב-.ToString("O") ---
-            var receiptElement = new XElement("Receipt",
-                new XAttribute("ReceiptNumber", entity.ReceiptNumber),
-                new XAttribute("Amount", entity.Amount),
-                new XAttribute("IssuedDate", entity.IssuedDate.ToString("O")));
+                var receiptElement = new XElement("Receipt",
+                    new XAttribute("ReceiptNumber", entity.ReceiptNumber),
+                    new XAttribute("Amount", entity.Amount),
+                    new XAttribute("IssuedDate", entity.IssuedDate.ToString("O")));
 
-            if (newFilePath != null)
-                receiptElement.Add(new XElement("FilePath", newFilePath));
+                if (newFilePath != null)
+                    receiptElement.Add(new XElement("FilePath", newFilePath));
 
-            XMLDocManager.AddElement(doc, receiptElement);
-            XMLDocManager.SaveDocument(doc, _xmlFilePath);
+                XMLDocManager.AddElement(doc, receiptElement);
+                XMLDocManager.SaveDocument(doc, _xmlFilePath);
+            });
         }
 
-        public ReceiptDetails? GetByReceiptNumber(string receiptNumber)
+        public Task<ReceiptDetails?> GetByReceiptNumberAsync(string receiptNumber)
         {
-            if (!File.Exists(_xmlFilePath))
-                return null;
-
-            var doc = XMLDocManager.LoadDocument(_xmlFilePath);
-            var element = doc.Root?.Elements("Receipt")
-                .FirstOrDefault(e => (string?)e.Attribute("ReceiptNumber") == receiptNumber);
-
-            if (element == null)
-                return null;
-
-            var filePath = element.Element("FilePath")?.Value;
-            return new ReceiptDetails(
-                receiptNumber: (string?)element.Attribute("ReceiptNumber") ?? "",
-                amount: (decimal?)element.Attribute("Amount") ?? 0,
-                issuedDate: DateTime.Parse((string?)element.Attribute("IssuedDate") ?? DateTime.Now.ToString("O")),
-                filePath: filePath
-            );
-        }
-
-        public IEnumerable<ReceiptDetails> GetAll()
-        {
-            if (!File.Exists(_xmlFilePath))
-                return new List<ReceiptDetails>();
-
-            var doc = XMLDocManager.LoadDocument(_xmlFilePath);
-            var receipts = new List<ReceiptDetails>();
-
-            foreach (var element in doc.Root?.Elements("Receipt") ?? Enumerable.Empty<XElement>())
+            return Task.Run(() =>
             {
+                if (!File.Exists(_xmlFilePath))
+                    return null as ReceiptDetails;
+
+                var doc = XMLDocManager.LoadDocument(_xmlFilePath);
+                var element = doc.Root?.Elements("Receipt")
+                    .FirstOrDefault(e => (string?)e.Attribute("ReceiptNumber") == receiptNumber);
+
+                if (element == null)
+                    return null as ReceiptDetails;
+
                 var filePath = element.Element("FilePath")?.Value;
-                var receipt = new ReceiptDetails(
+                return new ReceiptDetails(
                     receiptNumber: (string?)element.Attribute("ReceiptNumber") ?? "",
                     amount: (decimal?)element.Attribute("Amount") ?? 0,
                     issuedDate: DateTime.Parse((string?)element.Attribute("IssuedDate") ?? DateTime.Now.ToString("O")),
                     filePath: filePath
                 );
-                receipts.Add(receipt);
-            }
+            });
+        }
 
-            return receipts;
+        public Task<IEnumerable<ReceiptDetails>> GetAllAsync()
+        {
+            return Task.Run<IEnumerable<ReceiptDetails>>(() =>
+            {
+                if (!File.Exists(_xmlFilePath))
+                    return new List<ReceiptDetails>();
+
+                var doc = XMLDocManager.LoadDocument(_xmlFilePath);
+                var receipts = new List<ReceiptDetails>();
+
+                foreach (var element in doc.Root?.Elements("Receipt") ?? Enumerable.Empty<XElement>())
+                {
+                    var filePath = element.Element("FilePath")?.Value;
+                    var receipt = new ReceiptDetails(
+                        receiptNumber: (string?)element.Attribute("ReceiptNumber") ?? "",
+                        amount: (decimal?)element.Attribute("Amount") ?? 0,
+                        issuedDate: DateTime.Parse((string?)element.Attribute("IssuedDate") ?? DateTime.Now.ToString("O")),
+                        filePath: filePath
+                    );
+                    receipts.Add(receipt);
+                }
+
+                return receipts;
+            });
         }
     }
 }

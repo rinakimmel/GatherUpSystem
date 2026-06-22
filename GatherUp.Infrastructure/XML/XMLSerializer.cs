@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 public static class XMLSerializer<T> where T : class, new()
@@ -44,4 +45,7 @@ public static class XMLSerializer<T> where T : class, new()
             throw new IOException($"Failed to read XML file from {filePath}", ex);
         }
     }
+
+    public static Task WriteToFileAsync(string filePath, List<T> items) => Task.Run(() => WriteToFile(filePath, items));
+    public static Task<List<T>> ReadFromFileAsync(string filePath) => Task.Run(() => ReadFromFile(filePath));
 }

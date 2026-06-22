@@ -1,5 +1,9 @@
 using GatherUp.Core;
 using GatherUp.Core.DO;
+using GatherUp.Core.Exceptions;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace GatherUp.BL
 {
@@ -11,7 +15,7 @@ namespace GatherUp.BL
         string Question,
         IEnumerable<(string Choice, int Count, double Percentage)> OptionBreakdown);
 
-    public class PollService
+    public partial class PollService
     {
         private readonly IRepository<Poll> _pollRepo;
         private readonly IRepository<Participant> _participantRepo;
@@ -36,15 +40,15 @@ namespace GatherUp.BL
             _notifications = notifications;
 
             // הרשמה לאירועים הרלוונטיים למחלקה זו
-            _notifications.OnPollCreated += HandlePollCreated;
-            _notifications.OnPollVoteCast += HandlePollVoteCast;
-            _notifications.OnEventDetailsChanged += HandleEventDetailsChanged;
+            _notifications.OnPollCreated += (pollId, eventId) => _ = HandlePollCreatedAsync(pollId, eventId);
+            _notifications.OnPollVoteCast += (pollId, participantId) => _ = HandlePollVoteCastAsync(pollId, participantId);
+            _notifications.OnEventDetailsChanged += id => _ = HandleEventDetailsChangedAsync(id);
         }
 
-        public Poll CreatePoll(int eventId, string name, string description,
+        public async Task<Poll> CreatePollAsync(int eventId, string name, string description,
             IEnumerable<(string Question, IEnumerable<string> Options)> questions)
         {
-            var ev = _eventRepo.GetById(eventId) ?? throw new KeyNotFoundException($"Event {eventId} not found.");
+            var ev = await _eventRepo.GetByIdAsync(eventId) ?? throw new NotFoundException($"Event {eventId} not found.");
 
             var poll = new Poll(0, name, description);
             int qId = 1;
@@ -55,32 +59,32 @@ namespace GatherUp.BL
                 poll.Questions.Add(pq);
             }
 
-            _pollRepo.Add(poll);
+            await _pollRepo.AddAsync(poll);
             ev.PollIds.Add(poll.Id);
-            _eventRepo.Update(ev);
+            await _eventRepo.UpdateAsync(ev);
 
-            _notifications.OnPollCreated?.Invoke(poll.Id, eventId);
+            _notifications.RaisePollCreated(poll.Id, eventId);
             return poll;
         }
 
-        public void SubmitVote(int pollId, int questionId, int participantId, string choice)
+        public async Task SubmitVoteAsync(int pollId, int questionId, int participantId, string choice)
         {
-            var poll = _pollRepo.GetById(pollId) ?? throw new KeyNotFoundException($"Poll {pollId} not found.");
+            var poll = await _pollRepo.GetByIdAsync(pollId) ?? throw new NotFoundException($"Poll {pollId} not found.");
 
             var question = poll.Questions.FirstOrDefault(q => q.Id == questionId)
-                ?? throw new KeyNotFoundException($"Question {questionId} not found.");
+                ?? throw new NotFoundException($"Question {questionId} not found.");
 
             // מניעת כפילות – הסרת הצבעה קודמת אם קיימת
             question.ParticipantChoices.RemoveAll(c => c.ParticipantId == participantId);
             question.ParticipantChoices.Add(new ParticipantChoice(participantId, choice));
 
-            _pollRepo.Update(poll);
-            _notifications.OnPollVoteCast?.Invoke(pollId, participantId);
+            await _pollRepo.UpdateAsync(poll);
+            _notifications.RaisePollVoteCast(pollId, participantId);
         }
 
-        public PollResults GetPollResults(int pollId)
+        public async Task<PollResults> GetPollResultsAsync(int pollId)
         {
-            var poll = _pollRepo.GetById(pollId) ?? throw new KeyNotFoundException($"Poll {pollId} not found.");
+            var poll = await _pollRepo.GetByIdAsync(pollId) ?? throw new NotFoundException($"Poll {pollId} not found.");
 
             var results = poll.Questions.Select(q =>
             {
@@ -98,51 +102,64 @@ namespace GatherUp.BL
         }
 
         // בדיקת קיום – סעיף 4.1c
-        public bool IsPollOpen(int pollId) =>
-            _pollRepo.GetAll().Any(p => p.Id == pollId);
+        public async Task<bool> IsPollOpenAsync(int pollId) =>
+            (await _pollRepo.GetAllAsync()).Any(p => p.Id == pollId);
 
-        // טיפול באירוע: מי ביקש מייל על סקר חדש — משתתפים עם AllUpdates
-        private void HandlePollCreated(int pollId, int eventId)
+        // async handlers
+        private async Task HandlePollCreatedAsync(int pollId, int eventId)
         {
-            var ev = _eventRepo.GetById(eventId);
+            var ev = await _eventRepo.GetByIdAsync(eventId);
             if (ev == null) return;
 
-            ev.ParticipantIds
-                .Select(id => _participantRepo.GetById(id))
-                .Where(p => p != null && p.MailingPreferences.HasFlag(MailingPreference.AllUpdates))
-                .ToList()
-                .ForEach(p => _mailService.Send(p!.Email,
+            var participants = (await Task.WhenAll(ev.ParticipantIds.Select(id => _participantRepo.GetByIdAsync(id))))
+                .Where(p => p != null && p.MailingPreferences.HasFlag(MailingPreference.AllUpdates)).Cast<Participant>();
+
+            foreach (var p in participants)
+            {
+                await _mailService.SendAsync(p.Email,
                     $"New poll – {ev.Name}",
-                    $"A new poll (#{pollId}) has been created. Log in to vote."));
+                    $"A new poll (#{pollId}) has been created. Log in to vote.");
+            }
         }
 
-        // טיפול באירוע: מי ביקש מייל על הצבעה חדשה — המנהל
-        private void HandlePollVoteCast(int pollId, int participantId)
+        private async Task HandlePollVoteCastAsync(int pollId, int participantId)
         {
-            var ev = _eventRepo.GetAll().FirstOrDefault(e => e.PollIds.Contains(pollId));
+            var ev = (await _eventRepo.GetAllAsync()).FirstOrDefault(e => e.PollIds.Contains(pollId));
             if (ev == null) return;
-            var manager = _managerRepo.GetById(ev.EventManagerId);
-            var participant = _participantRepo.GetById(participantId);
+            var manager = await _managerRepo.GetByIdAsync(ev.EventManagerId);
+            var participant = await _participantRepo.GetByIdAsync(participantId);
             if (manager == null || participant == null) return;
 
-            _mailService.Send(manager.Email,
+            await _mailService.SendAsync(manager.Email,
                 $"New vote in poll #{pollId} – {ev.Name}",
                 $"{participant.Name} submitted a vote.");
         }
 
-        // טיפול באירוע: מי ביקש מייל על שינוי פרטי אירוע — משתתפים עם ImportantUpdatesOnly
-        private void HandleEventDetailsChanged(int eventId)
+        private async Task HandleEventDetailsChangedAsync(int eventId)
         {
-            var ev = _eventRepo.GetById(eventId);
+            var ev = await _eventRepo.GetByIdAsync(eventId);
             if (ev == null) return;
 
-            ev.ParticipantIds
-                .Select(id => _participantRepo.GetById(id))
-                .Where(p => p != null && p.MailingPreferences.HasFlag(MailingPreference.ImportantUpdatesOnly))
-                .ToList()
-                .ForEach(p => _mailService.Send(p!.Email,
+            var participants = (await Task.WhenAll(ev.ParticipantIds.Select(id => _participantRepo.GetByIdAsync(id))))
+                .Where(p => p != null && p.MailingPreferences.HasFlag(MailingPreference.ImportantUpdatesOnly)).Cast<Participant>();
+
+            foreach (var p in participants)
+            {
+                await _mailService.SendAsync(p.Email,
                     $"Event updated – {ev.Name}",
-                    $"The details of {ev.Name} have been updated."));
+                    $"The details of {ev.Name} have been updated.");
+            }
         }
+
+        public Poll CreatePoll(int eventId, string name, string description, IEnumerable<(string Question, IEnumerable<string> Options)> questions)
+            => CreatePollAsync(eventId, name, description, questions).GetAwaiter().GetResult();
+
+        public void SubmitVote(int pollId, int questionId, int participantId, string choice)
+            => SubmitVoteAsync(pollId, questionId, participantId, choice).GetAwaiter().GetResult();
+
+        public PollResults GetPollResults(int pollId)
+            => GetPollResultsAsync(pollId).GetAwaiter().GetResult();
+
+        public bool IsPollOpen(int pollId) => IsPollOpenAsync(pollId).GetAwaiter().GetResult();
     }
 }

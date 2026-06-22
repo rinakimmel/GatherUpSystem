@@ -1,22 +1,20 @@
 using System;
 using System.Collections.Generic;
-using GatherUp.Core.DO; // חובה לייבא את הישויות וה-Enum
+using System.Threading.Tasks;
+using GatherUp.Core.DO; // ודאי שמרחב השמות מיובא
 
 namespace GatherUp.Infrastructure.Data
 {
     public static class Initialize
     {
-        // שימוש בממשק IRepository הוא נכון יותר ארכיטקטונית
-        public static void SeedAll(
+        // גרסה אסינכרונית לאיתחול נתונים
+        public static async Task SeedAllAsync(
             IRepository<EventManager> managerRepo,
             IRepository<EventHost> hostRepo,
             IRepository<Participant> participantRepo,
             IRepository<Event> eventRepo,
             IRepository<Poll> pollRepo)
         {
-            // --- 1. יצירת אנשים ושמירתם כדי לקבל ID אוטומטי ---
-
-            // שימוש בבנאים המאובטחים שבנינו
             var manager = new EventManager(0, "Emily Brown", "emily.brown@example.com");
             var host = new EventHost(0, "Michael Green", "michael.green@example.com");
 
@@ -25,7 +23,7 @@ namespace GatherUp.Infrastructure.Data
                 IsAttending = true,
                 HasPaid = true,
                 AmountContributed = 75.00m,
-                MailingPreferences = MailingPreference.AllUpdates // שימוש ב-Enum
+                MailingPreferences = MailingPreference.AllUpdates
             };
 
             var participant2 = new Participant(0, "David Levi", "david.levi@example.com")
@@ -36,20 +34,15 @@ namespace GatherUp.Infrastructure.Data
                 MailingPreferences = MailingPreference.ImportantUpdatesOnly
             };
 
-            // הוספה למחסנים - כאן ה-ID שלהם מתעדכן מ-0 למספר אמיתי ע"י הרפלקשן!
-            managerRepo.Add(manager);
-            hostRepo.Add(host);
-            participantRepo.Add(participant1);
-            participantRepo.Add(participant2);
-
-
-            // --- 2. יצירת סקרים תוך שימוש במחלקת הבחירות שבנינו (ParticipantChoice) ---
+            await managerRepo.AddAsync(manager);
+            await hostRepo.AddAsync(host);
+            await participantRepo.AddAsync(participant1);
+            await participantRepo.AddAsync(participant2);
 
             var poll1 = new Poll(0, "Food Preferences", "Choose your preferred cuisine");
             poll1.Questions.Add(new PollQuestion(0, "Which cuisine do you prefer?")
             {
                 ChoiceOptions = new List<string> { "Italian", "Mediterranean", "Vegan" },
-                // שימוש ברשימה המותאמת ל-XML במקום ב-Dictionary
                 ParticipantChoices = new List<ParticipantChoice>
                 {
                     new ParticipantChoice(participant1.Id, "Italian")
@@ -66,31 +59,25 @@ namespace GatherUp.Infrastructure.Data
                 }
             });
 
-            // שמירת הסקרים לקבלת ID
-            pollRepo.Add(poll1);
-            pollRepo.Add(poll2);
+            await pollRepo.AddAsync(poll1);
+            await pollRepo.AddAsync(poll2);
 
-
-            // --- 3. יצירת ספק ---
             var vendor = new VendorAllocation("Sunrise Catering")
             {
                 AmountOwed = 1200.00m,
                 ReceiptsReceived = false
             };
 
-
-            // --- 4. יצירת האירוע המרכזי וקישור כל ה-IDs שנוצרו ---
             var mainEvent = new Event(0, "Summer Community Meetup", "Annual meetup for the local community.")
             {
                 EventManagerId = manager.Id,
                 EventHostId = host.Id,
                 ParticipantIds = new List<int> { participant1.Id, participant2.Id },
-                PollIds = new List<int> { poll1.Id, poll2.Id }, // קישור סקרים ע"י מזהה
-                Vendors = new List<VendorAllocation> { vendor } // ספקים יושבים ישירות בתוך האירוע
+                PollIds = new List<int> { poll1.Id, poll2.Id },
+                Vendors = new List<VendorAllocation> { vendor }
             };
 
-            // שמירת האירוע
-            eventRepo.Add(mainEvent);
+            await eventRepo.AddAsync(mainEvent);
         }
     }
 }

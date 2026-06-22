@@ -1,4 +1,5 @@
 using GatherUp.Core;
+using System.Threading.Tasks;
 
 namespace GatherUp.Infrastructure
 {
@@ -22,6 +23,11 @@ namespace GatherUp.Infrastructure
 
                 """;
             File.AppendAllText(_logPath, entry);
+        }
+
+        public Task SendAsync(string toEmail, string subject, string body)
+        {
+            return Task.Run(() => Send(toEmail, subject, body));
         }
     }
 }

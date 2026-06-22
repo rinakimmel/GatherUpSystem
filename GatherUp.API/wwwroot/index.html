@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GatherUp - Admin UI</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>GatherUp - Simple UI</h1>
+    <p>Interact with the API: create polls, vote, upload receipts.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Create Poll</h2>
+      <form id="createPollForm">
+        <label>Event ID: <input id="pollEventId" type="number" value="1" required></label>
+        <label>Poll Name: <input id="pollName" type="text" value="Venue Poll" required></label>
+        <label>Description: <input id="pollDescription" type="text" value="Where should we meet?" required></label>
+        <label>Questions (one per line, options separated by |):<br>
+          <textarea id="pollQuestions" rows="3">Where should we meet?|Tel Aviv|Jerusalem|Haifa</textarea>
+        </label>
+        <button type="submit">Create Poll</button>
+      </form>
+      <pre id="createPollResult"></pre>
+    </section>
+
+    <section>
+      <h2>Vote</h2>
+      <form id="voteForm">
+        <label>Poll ID: <input id="votePollId" type="number" value="1" required></label>
+        <label>Question ID: <input id="voteQuestionId" type="number" value="1" required></label>
+        <label>Participant ID: <input id="voteParticipantId" type="number" value="1" required></label>
+        <label>Choice: <input id="voteChoice" type="text" value="Tel Aviv" required></label>
+        <button type="submit">Submit Vote</button>
+      </form>
+      <pre id="voteResult"></pre>
+    </section>
+
+    <section>
+      <h2>Poll Results</h2>
+      <form id="resultsForm">
+        <label>Poll ID: <input id="resultsPollId" type="number" value="1" required></label>
+        <button type="submit">Get Results</button>
+      </form>
+      <pre id="resultsOutput"></pre>
+    </section>
+
+    <section>
+      <h2>Upload Receipt</h2>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <label>Event ID: <input id="uploadEventId" type="number" value="1" required></label>
+        <label>Vendor Name: <input id="uploadVendor" type="text" value="TestVendor" required></label>
+        <label>Receipt Number: <input id="uploadNumber" type="text" value="RN-UI-1" required></label>
+        <label>Amount: <input id="uploadAmount" type="number" value="42" step="0.01" required></label>
+        <label>File: <input id="uploadFile" type="file" required></label>
+        <button type="submit">Upload</button>
+      </form>
+      <pre id="uploadResult"></pre>
+    </section>
+  </main>
+
+  <footer>
+    <small>This is a minimal admin UI for development/testing only.</small>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

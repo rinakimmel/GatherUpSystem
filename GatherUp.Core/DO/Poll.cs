@@ -11,10 +11,10 @@ namespace GatherUp.Core.DO
         public int Id { get; set; }
 
         [XmlAttribute]
-        public required string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [XmlElement]
-        public required string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [XmlArray("Questions")]
         [XmlArrayItem("Question")]
