@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
 using GatherUp.Core;
+using System.Collections.Generic;
 
 namespace GatherUp.UnitTests
 {

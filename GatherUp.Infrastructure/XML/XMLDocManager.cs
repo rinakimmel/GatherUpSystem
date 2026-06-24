@@ -26,6 +26,7 @@ public static class XMLDocManager
         element.Remove();
     }
 
+
     public static List<XElement> GetAllElements(XDocument doc, string elementName)
     {
         return doc.Root?.Elements(elementName).ToList() ?? new List<XElement>();

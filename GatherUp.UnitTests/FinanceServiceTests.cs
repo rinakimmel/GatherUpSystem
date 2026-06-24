@@ -14,9 +14,9 @@ namespace GatherUp.UnitTests
         {
             // Arrange
             string dataDir = System.IO.Path.Combine(System.AppContext.BaseDirectory, "TestData");
-            var participantRepo = new Infrastructure.MemoryRepository<Participant>();
-            var managerRepo = new Infrastructure.MemoryRepository<EventManager>();
-            var eventRepo = new Infrastructure.MemoryRepository<Event>();
+            var participantRepo = new MemoryRepository<Participant>();
+            var managerRepo = new MemoryRepository<EventManager>();
+            var eventRepo = new MemoryRepository<Event>();
             var receiptRepo = new ReceiptRepository(dataDir);
             var mailService = new FileMailService(System.IO.Path.Combine(dataDir, "mail.txt"));
             var notifications = new BL.EventNotificationBus();

@@ -127,7 +127,13 @@ namespace GatherUp.BL
         public async Task AddReceiptToVendorAsync(int eventId, string vendorName, ReceiptDetails receipt)
         {
             var ev = await _eventRepo.GetByIdAsync(eventId) ?? throw new NotFoundException($"Event {eventId} not found.");
-            var vendor = ev.Vendors.FirstOrDefault(v => v.VendorName == vendorName) ?? throw new NotFoundException($"Vendor {vendorName} not found.");
+            // create vendor if missing instead of throwing NotFound
+            var vendor = ev.Vendors.FirstOrDefault(v => v.VendorName == vendorName);
+            if (vendor == null)
+            {
+                vendor = new VendorAllocation(vendorName);
+                ev.Vendors.Add(vendor);
+            }
 
             vendor.Receipts.Add(receipt);
             vendor.ReceiptsReceived = true;

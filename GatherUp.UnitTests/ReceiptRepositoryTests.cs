@@ -11,7 +11,7 @@ namespace GatherUp.UnitTests
         [Fact]
         public async Task AddAsync_CopiesFileAndStoresMetadata()
         {
-            string testDir = Path.Combine(AppContext.BaseDirectory, "ReceiptTestData");
+            string testDir = Path.Combine(System.AppContext.BaseDirectory, "ReceiptTestData");
             if (Directory.Exists(testDir)) Directory.Delete(testDir, true);
             Directory.CreateDirectory(testDir);
 

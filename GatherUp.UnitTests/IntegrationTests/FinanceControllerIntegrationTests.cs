@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.IO;
 using GatherUp.API;
 using System.Net;
+using System;
 
 namespace GatherUp.UnitTests.IntegrationTests
 {
@@ -24,19 +25,23 @@ namespace GatherUp.UnitTests.IntegrationTests
             var tmp = Path.Combine(Path.GetTempPath(), "test_receipt.txt");
             await File.WriteAllTextAsync(tmp, "receipt content");
 
-            using var fs = File.OpenRead(tmp);
-            var content = new MultipartFormDataContent();
-            var fileContent = new StreamContent(fs);
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-            content.Add(fileContent, "file", "test_receipt.txt");
-            content.Add(new StringContent("RN-INT-1"), "receiptNumber");
-            content.Add(new StringContent("42"), "amount");
+            var receiptNumber = "RN-INT-" + Guid.NewGuid().ToString("N");
 
-            var response = await client.PostAsync($"/api/finance/1/vendors/TestVendor/receipts", content);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            using (var fs = File.OpenRead(tmp))
+            {
+                var content = new MultipartFormDataContent();
+                var fileContent = new StreamContent(fs);
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                content.Add(fileContent, "file", "test_receipt.txt");
+                content.Add(new StringContent(receiptNumber), "receiptNumber");
+                content.Add(new StringContent("42"), "amount");
+
+                var response = await client.PostAsync($"/api/finance/1/vendors/TestVendor/receipts", content);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
 
             // download
-            var dl = await client.GetAsync($"/api/finance/receipts/RN-INT-1/file");
+            var dl = await client.GetAsync($"/api/finance/receipts/{receiptNumber}/file");
             Assert.Equal(HttpStatusCode.OK, dl.StatusCode);
 
             // cleanup
