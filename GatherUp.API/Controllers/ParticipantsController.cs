@@ -1,4 +1,5 @@
 using GatherUp.BL;
+using GatherUp.Core;
 using GatherUp.Core.DO;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +10,17 @@ namespace GatherUp.API.Controllers
     public class ParticipantsController : ControllerBase
     {
         private readonly ParticipantService _participantService;
+        private readonly IRepository<Participant> _participantRepo;
+        private readonly IRepository<Event> _eventRepo;
 
-        public ParticipantsController(ParticipantService participantService)
+        public ParticipantsController(
+            ParticipantService participantService,
+            IRepository<Participant> participantRepo,
+            IRepository<Event> eventRepo)
         {
             _participantService = participantService;
+            _participantRepo = participantRepo;
+            _eventRepo = eventRepo;
         }
 
         [HttpPost("{eventId}")]
@@ -23,10 +31,28 @@ namespace GatherUp.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetParticipant(int id)
+        public async Task<IActionResult> GetParticipant(int id)
         {
-            // controller only exposes BL methods; consumer can use repository directly in tests
-            return Ok();
+            var p = await _participantRepo.GetByIdAsync(id);
+            if (p == null) return NotFound(new { error = $"Participant {id} not found." });
+            return Ok(new
+            {
+                p.Id, p.Name, p.Email,
+                p.IsAttending, p.HasPaid, p.AmountContributed,
+                MailingPreferences = p.MailingPreferences.ToString()
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var all = await _participantRepo.GetAllAsync();
+            return Ok(all.Select(p => new
+            {
+                p.Id, p.Name, p.Email,
+                p.IsAttending, p.HasPaid, p.AmountContributed,
+                MailingPreferences = p.MailingPreferences.ToString()
+            }));
         }
 
         [HttpPost("{eventId}/confirm/{participantId}")]

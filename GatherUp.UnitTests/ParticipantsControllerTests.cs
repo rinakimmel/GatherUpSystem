@@ -20,7 +20,7 @@ namespace GatherUp.UnitTests
             var notifications = new BL.EventNotificationBus();
 
             var svc = new ParticipantService(participantRepo, managerRepo, eventRepo, mailService, notifications);
-            var controller = new ParticipantsController(svc);
+            var controller = new ParticipantsController(svc, participantRepo, eventRepo);
 
             var ev = new Event(0, "E", "d");
             await eventRepo.AddAsync(ev);
@@ -44,7 +44,7 @@ namespace GatherUp.UnitTests
             var notifications = new BL.EventNotificationBus();
 
             var svc = new ParticipantService(participantRepo, managerRepo, eventRepo, mailService, notifications);
-            var controller = new ParticipantsController(svc);
+            var controller = new ParticipantsController(svc, participantRepo, eventRepo);
 
             var p = new Participant(0, "Bob", "b@example.com");
             await participantRepo.AddAsync(p);

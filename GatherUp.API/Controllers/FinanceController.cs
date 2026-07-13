@@ -70,6 +70,20 @@ namespace GatherUp.API.Controllers
             return Ok(new { receiptNumber = receiptNumber });
         }
 
+        [HttpPost("{eventId}/payment-reminders")]
+        public async Task<IActionResult> SendPaymentReminders(int eventId, [FromQuery] string? bankDetails)
+        {
+            await _financeService.SendPaymentRemindersAsync(eventId, bankDetails ?? string.Empty);
+            return NoContent();
+        }
+
+        [HttpGet("{eventId}/vendors")]
+        public async Task<IActionResult> GetVendors(int eventId)
+        {
+            var summary = await _financeService.GetFinancialSummaryAsync(eventId);
+            return Ok(summary.Vendors.Select(v => new { vendorName = v.VendorName, amountOwed = v.AmountOwed }));
+        }
+
         // Download stored receipt file by receipt number
         [HttpGet("receipts/{receiptNumber}/file")]
         public async Task<IActionResult> DownloadReceiptFile(string receiptNumber)

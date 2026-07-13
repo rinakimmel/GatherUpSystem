@@ -34,6 +34,31 @@ namespace GatherUp.Core.DO
         [XmlArrayItem("Vendor")]
         public List<VendorAllocation> Vendors { get; set; } = new List<VendorAllocation>();
 
+        // Optional event details
+        [XmlElement("Date", IsNullable = false)]
+        public string? DateString
+        {
+            get => Date.HasValue ? Date.Value.ToString("o") : null;
+            set => Date = string.IsNullOrEmpty(value) ? null : DateTime.Parse(value);
+        }
+        [XmlIgnore]
+        public DateTime? Date { get; set; }
+
+        [XmlAttribute]
+        public string Location { get; set; } = string.Empty;
+
+        [XmlElement("Price", IsNullable = false)]
+        public string? PriceString
+        {
+            get => PricePerParticipant.HasValue ? PricePerParticipant.Value.ToString() : null;
+            set => PricePerParticipant = string.IsNullOrEmpty(value) ? null : decimal.Parse(value);
+        }
+        [XmlIgnore]
+        public decimal? PricePerParticipant { get; set; }
+
+        [XmlElement]
+        public string PaymentMethods { get; set; } = string.Empty;
+
         public Event()
         {
         }
