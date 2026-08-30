@@ -1,263 +1,343 @@
-# GatherUp 🎉
+# GatherUp
 
-> **מנוע Backend מלא לניהול, תיאום וגביית תקציב עבור מפגשים קבוצתיים**  
-> פרויקט גמר — קורס C# מתקדם
+A full-stack event coordination and finance platform built with C# and ASP.NET Core for managing group activities, participant engagement, polls, billing, and automated communication.
 
----
-
-## 📖 תוכן עניינים
-
-- [רעיון כללי](#-רעיון-כללי)
-- [תכונות עיקריות](#-תכונות-עיקריות)
-- [ארכיטקטורה](#-ארכיטקטורה)
-- [ישויות המערכת](#-ישויות-המערכת)
-- [טכנולוגיות](#-טכנולוגיות)
-- [הפעלה מהירה](#-הפעלה-מהירה)
-- [נקודות קצה API](#-נקודות-קצה-api)
-- [ממשק משתמש](#-ממשק-משתמש)
-- [מבנה הפרויקט](#-מבנה-הפרויקט)
-- [תרשים שכבות](#-תרשים-שכבות)
+> Built as a final-year project focused on backend architecture, business rules, modular design, and practical workflow automation.
 
 ---
 
-## 💡 רעיון כללי
+## Overview
 
-**GatherUp** היא מערכת Web API מלאה שנועדה לפתור את הבלגן הארגוני הכרוך בתיאום אירועים קבוצתיים — שבתות גיבוש, מסיבות משפחתיות, מפגשי חברות ועוד.
+GatherUp is a domain-driven event management system designed to simplify the complexity of organizing group experiences such as family events, corporate gatherings, community meetups, and celebrations.
 
-המערכת מאפשרת:
-- **תיאום לוחות זמנים** — קביעת תאריך, שעה ומיקום לאירוע
-- **ניהול משתתפים** — הזמנה, אישור הגעה ומעקב
-- **קבלת החלטות קבוצתית** — סקרים אינטראקטיביים
-- **מעקב פיננסי** — גביית תשלומים, ניהול ספקים וקבלות דיגיטליות
-- **מנוע התראות אסינכרוני** — עדכונים אוטומטיים למשתתפים לפי העדפותיהם
+The platform gives organizers a single place to:
 
----
-
-## ✨ תכונות עיקריות
-
-### 🗓️ ניהול אירועים
-- יצירה ועריכה של אירועים עם כל הפרטים (שם, תאריך, מיקום, מחיר לאדם, אמצעי תשלום)
-- קישור מנהל ובעל האירוע (Host) לכל אירוע
-- סקירה כוללת של כל האירועים בדשבורד
-
-### 👥 ניהול משתתפים
-- רישום משתתפים על-ידי מנהל (קבוצה סגורה)
-- שליחת הזמנות ותזכורות בדואר אלקטרוני
-- אישור / דחיית הגעה
-- העדפות דיוור אישיות לכל משתתף
-
-### 🗳️ סקרים (**Polls**)
-- יצירת סקרים עם שאלות מרובות ואפשרויות בחירה
-- הצבעה עם אפשרות לשינוי בחירה
-- תצוגת תוצאות בזמן אמת עם גרף
-
-### 💰 ניהול פיננסי
-- רישום תשלומים ממשתתפים
-- הוספת ספקים וסכומים חייבים
-- העלאת קבלות דיגיטליות (נעילה immutable לאחר שמירה)
-- סיכום פיננסי: הכנסות, הוצאות, יתרה
-- שליחת תזכורות תשלום אוטומטיות
-
-### 🔔 מנוע התראות אסינכרוני
-- התראות למנהל על כל אישור הגעה ותשלום
-- שליחת עדכונים למשתתפים לפי העדפות הדיוור שלהם
-- מיילים אוטומטיים בעת שינוי פרטי האירוע
+- manage event details and lifecycle
+- coordinate participants and attendance status
+- collect decisions via interactive polls
+- track payments, vendors, and receipts
+- send reminders and notifications based on preferences
+- maintain a clean, layered architecture with reusable business services
 
 ---
 
-## 🏗️ ארכיטקטורה
+## Core Capabilities
 
-המערכת בנויה על עקרון **הפרדת שכבות** (Clean Architecture) מלאה:
+### Event Management
+- Create and update events with title, description, date, location, and cost details
+- Attach a manager and event host to each event
+- View all events in a unified dashboard
+- Maintain event-specific participant and finance context
 
+### Participant Management
+- Register participants under a manager-controlled flow
+- Track attendance confirmations and rejections
+- Send invitations and reminders electronically
+- Store individual communication preferences and status
+
+### Polling and Decision Support
+- Create polls with multiple questions and multiple-choice answers
+- Allow participants to vote and change selections
+- Display aggregated results with visual charts
+- Support event-driven decision making in a transparent, collaborative way
+
+### Finance Tracking
+- Record participant payments and outstanding balances
+- Track vendor allocations and debts
+- Store invoice or receipt files securely
+- Calculate summary values such as income, expenses, and net balance
+- Trigger reminder flows for pending payments
+
+### Notification Engine
+- Push updates when participant attendance changes
+- Send event updates based on each participant’s mailing preference
+- Notify managers of important actions such as payments and confirmations
+- Support asynchronous communication patterns using a notification bus
+
+---
+
+## Architecture
+
+The solution uses a layered architecture, separating business logic, infrastructure, and domain responsibilities.
+
+```text
+┌─────────────────────────────────────────────┐
+│ GatherUp.API                                │
+│ - Controllers                               │
+│ - Minimal API endpoints                     │
+│ - Static SPA frontend                       │
+├─────────────────────────────────────────────┤
+│ GatherUp.BL                                 │
+│ - Business services                         │
+│ - Application logic                         │
+│ - Event notification orchestration          │
+├─────────────────────────────────────────────┤
+│ GatherUp.Infrastructure                     │
+│ - XML repository implementations            │
+│ - Mail service                              │
+│ - Receipt storage                           │
+├─────────────────────────────────────────────┤
+│ GatherUp.Core                               │
+│ - Entities                                  │
+│ - Interfaces                                │
+│ - Business exceptions                       │
+│ - Shared domain contracts                   │
+└─────────────────────────────────────────────┘
 ```
-┌─────────────────────────────────────────┐
-│           GatherUp.API                  │  ← Controllers, Minimal API, UI
-├─────────────────────────────────────────┤
-│           GatherUp.BL                   │  ← Business Logic Services
-├─────────────────────────────────────────┤
-│        GatherUp.Infrastructure          │  ← XML Repositories, Mail
-├─────────────────────────────────────────┤
-│           GatherUp.Core                 │  ← Entities, Interfaces, Exceptions
-└─────────────────────────────────────────┘
-```
 
-### עקרונות עיצוב מיושמים
+### Design Principles Applied
 
-| עיקרון | יישום |
-|--------|-------|
-| **Dependency Inversion** | כל השכבות תלויות ב-Core, לא אחת בשנייה |
-| **Repository Pattern** | `IRepository<T>` גנרי עם מימוש XML ו-Memory |
-| **Observer / Event Bus** | `IEventNotifications` + `EventNotificationBus` |
-| **Immutable Record** | `ReceiptDetails` — record שלא ניתן לשנות |
-| **Async/Await** | כל פעולות ה-I/O אסינכרוניות במלואן |
+| Principle | Implementation |
+|---|---|
+| Dependency Inversion | Core defines contracts, higher layers depend on abstractions |
+| Repository Pattern | Generic repository interface used with XML and in-memory implementations |
+| Event-Driven Notifications | Event bus decouples business actions from notification dispatch |
+| Immutable Data | Receipt details are stored as immutable records |
+| Async-first I/O | Communication and persistence flows use asynchronous operations |
 
 ---
 
-## 🧩 ישויות המערכת
+## Domain Model
 
-```
+```text
 Person (abstract)
-├── EventManager     — מנהל האירוע
-├── EventHost        — בעל האירוע (כלה, יום הולדת...)
-└── Participant      — משתתף עם מצב הגעה, תשלום והעדפות דיוור
+├── EventManager     - manages the dashboard and event lifecycle
+├── EventHost        - owner or coordinator of the event
+└── Participant      - registered attendee with status, payment, and preferences
 
-Event                — האירוע המרכזי, מקשר בין כולם
-VendorAllocation     — ספק + סכום חייב + קבלות
-ReceiptDetails       — record קפוא (immutable) של קבלה פיננסית
-Poll                 — סקר עם שאלות ואפשרויות
-PollQuestion         — שאלה + אפשרויות + בחירות משתתפים
+Event               - central entity for a gathering or meeting
+VendorAllocation    - supplier and cost breakdown information
+ReceiptDetails      - immutable financial receipt metadata
+Poll                - collection of questions and choices
+PollQuestion        - question and participant voting options
 ```
 
-### MailingPreference (Flags Enum)
+### Mailing Preference Enum
+
 ```csharp
 None                 = 0
-ImportantUpdatesOnly = 1   // שינויי מיקום / שעה
-AllUpdates           = 2   // כל עדכון
-DirectMessages       = 4   // הודעות מנהל
-Everything           = 7   // הכל
+ImportantUpdatesOnly = 1   // time/location changes
+AllUpdates           = 2   // general notifications
+DirectMessages       = 4   // manager direct messages
+Everything           = 7   // all communication
 ```
 
 ---
 
-## 🛠️ טכנולוגיות
+## Tech Stack
 
-| טכנולוגיה | שימוש |
-|-----------|-------|
-| **C# 12 / .NET 8** | שפת הפיתוח הראשית |
-| **ASP.NET Core** | Web API + Minimal API + Static Files |
-| **XML Serialization** | שמירה ושליפה מקובצי XML מקומיים |
-| **Bootstrap 5.3** | עיצוב ממשק המשתמש |
-| **Bootstrap Icons** | אייקונים |
-| **Chart.js 4** | גרפים פיננסיים וסקרים |
-| **xUnit** | בדיקות יחידה ואינטגרציה |
+| Technology | Purpose |
+|---|---|
+| C# / .NET 8 | Main application language and runtime |
+| ASP.NET Core | API framework, routing, middleware, static assets |
+| XML Serialization | Persistent local data storage |
+| Bootstrap 5 | UI styling and responsive layout |
+| Bootstrap Icons | Visual iconography |
+| Chart.js | Financial and poll result visualization |
+| xUnit | Unit and integration testing |
 
 ---
 
-## 🚀 הפעלה מהירה
+## Solution Structure
 
-### דרישות מקדימות
+```text
+GatherUpSystem/
+├── GatherUp.API/                 # Web API and frontend assets
+│   ├── Controllers/
+│   ├── Services/
+│   ├── wwwroot/
+│   └── Program.cs
+├── GatherUp.BL/                  # Business logic and domain services
+├── GatherUp.Core/                # Core entities, abstractions, exceptions
+├── GatherUp.Infrastructure/      # Data access and mail/receipt services
+├── GatherUp.UnitTests/           # Automated tests
+├── GatherUp.Tests/               # Additional testing project
+├── GatherUpSysTem.sln            # Visual Studio solution file
+├── README.md
+└── .gitignore
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
+- An IDE such as Visual Studio or VS Code
 
-### הפעלה
+### Run the application
 
 ```bash
-# שכפול / פתיחת הפרויקט
 cd GatherUpSystem
-
-# הרצה
+dotnet restore
 dotnet run --project GatherUp.API
 ```
 
-ניווט לכתובת שמוצגת בטרמינל (לרוב `http://localhost:5000`).
+Then open the URL shown in the terminal, typically:
 
-### פרטי כניסה ברירת מחדל
-
-| תפקיד | אימייל | סיסמה |
-|--------|--------|-------|
-| **מנהל** | `admin@example.com` | `admin` |
-
-> **הוספת משתתפים:** היכנס כמנהל ← Participants ← Add Participant
-
----
-
-## 📡 נקודות קצה API
-
-### 🗓️ Events — `/api/events`
-
-| Method | Endpoint | תיאור |
-|--------|----------|-------|
-| `GET` | `/api/events` | כל האירועים |
-| `GET` | `/api/events/{id}` | אירוע מלא עם כל הפרטים |
-| `POST` | `/api/events` | יצירת אירוע חדש |
-| `PUT` | `/api/events/{id}` | עדכון אירוע |
-| `DELETE` | `/api/events/{id}` | מחיקת אירוע |
-| `GET` | `/api/events/{id}/participants` | משתתפי האירוע |
-| `GET` | `/api/events/{id}/polls` | סקרי האירוע |
-| `POST` | `/api/events/{id}/host` | הגדרת בעל האירוע |
-
-### 👥 Participants — `/api/participants`
-
-| Method | Endpoint | תיאור |
-|--------|----------|-------|
-| `GET` | `/api/participants` | כל המשתתפים |
-| `GET` | `/api/participants/{id}` | משתתף ספציפי |
-| `POST` | `/api/participants/{eventId}` | הוספת משתתף לאירוע |
-| `POST` | `/api/participants/{eventId}/confirm/{participantId}` | אישור / דחיית הגעה |
-| `POST` | `/api/participants/{eventId}/invitations` | שליחת הזמנות |
-| `POST` | `/api/participants/{eventId}/reminders` | שליחת תזכורות |
-
-### 🗳️ Polls — `/api/polls`
-
-| Method | Endpoint | תיאור |
-|--------|----------|-------|
-| `POST` | `/api/polls/{eventId}` | יצירת סקר |
-| `GET` | `/api/polls/{id}` | פרטי סקר |
-| `GET` | `/api/polls/{pollId}/results` | תוצאות סקר |
-| `POST` | `/api/polls/{pollId}/vote` | הצבעה |
-
-### 💰 Finance — `/api/finance`
-
-| Method | Endpoint | תיאור |
-|--------|----------|-------|
-| `GET` | `/api/finance/{eventId}/summary` | סיכום פיננסי |
-| `POST` | `/api/finance/{eventId}/payment/{participantId}` | רישום תשלום |
-| `POST` | `/api/finance/{eventId}/vendor-debt` | הוספת חוב לספק |
-| `POST` | `/api/finance/{eventId}/payment-reminders` | תזכורות תשלום |
-| `POST` | `/api/finance/{eventId}/vendors/{vendorName}/receipts` | העלאת קבלה |
-| `GET` | `/api/finance/receipts/{receiptNumber}/file` | הורדת קובץ קבלה |
-
-### 🔐 Auth — `/auth`
-
-| Method | Endpoint | תיאור |
-|--------|----------|-------|
-| `POST` | `/auth/login` | התחברות |
-| `POST` | `/auth/logout` | התנתקות |
-| `GET` | `/auth/me` | פרטי המשתמש המחובר |
-| `POST` | `/auth/register/participant` | רישום משתתף (מנהל בלבד) |
-
----
-
-## 🖥️ ממשק משתמש
-
-ממשק SPA (Single Page Application) מובנה בתוך ה-API עצמו:
-
-### מסך התחברות
-![Login](https://via.placeholder.com/600x300/5c6ef5/ffffff?text=Login+Page)
-
-### פאנל Events
-- רשימת אירועים כ-Cards עם מידע מקוצר
-- לחיצה על כרטיס פותחת **פאנל פרטים** עם 4 טאבים:
-  - **Participants** — טבלת משתתפים + שליחת הזמנות
-  - **Polls** — סקרים + יצירת סקר חדש
-  - **Finance** — סיכום כספי + רישום תשלומים + ספקים + קבלות
-  - **Host** — פרטי בעל האירוע
-
-### פאנל Participants
-- טבלה כוללת של כל המשתתפים
-- סינון לפי אירוע
-- רישום משתתף חדש (מנהל בלבד)
-
-### פאנל Polls
-- בחירת אירוע וצפייה בסקרים
-- הצבעה אינטראקטיבית עם progress bar
-- ✅ מסומן על הבחירה הנוכחית של המשתמש
-
-### פאנל Finance
-- 4 KPI cards: הכנסות, הוצאות, יתרה, מספר משלמים
-- טבלת סטטוס תשלומים
-- טבלת ספקים
-- גרף Doughnut של תקציב
-
----
-
-## 📁 מבנה הפרויקט
-
+```text
+http://localhost:5000
 ```
+
+### Default login
+
+| Role | Email | Password |
+|---|---|---|
+| Manager | admin@example.com | admin |
+
+> The application seeds demo data in development mode to make testing and UI exploration easier.
+
+---
+
+## API Overview
+
+### Events
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /api/events | Get all events |
+| GET | /api/events/{id} | Get specific event details |
+| POST | /api/events | Create a new event |
+| PUT | /api/events/{id} | Update an existing event |
+| DELETE | /api/events/{id} | Delete an event |
+| GET | /api/events/{id}/participants | Get event participants |
+| GET | /api/events/{id}/polls | Get event polls |
+| POST | /api/events/{id}/host | Set an event host |
+
+### Participants
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /api/participants | Get all participants |
+| GET | /api/participants/{id} | Get participant details |
+| POST | /api/participants/{eventId} | Add participant to event |
+| POST | /api/participants/{eventId}/confirm/{participantId} | Confirm or reject attendance |
+| POST | /api/participants/{eventId}/invitations | Send invitations |
+| POST | /api/participants/{eventId}/reminders | Send reminders |
+
+### Polls
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | /api/polls/{eventId} | Create a poll |
+| GET | /api/polls/{id} | Get poll details |
+| GET | /api/polls/{pollId}/results | View poll results |
+| POST | /api/polls/{pollId}/vote | Cast a vote |
+
+### Finance
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /api/finance/{eventId}/summary | View financial summary |
+| POST | /api/finance/{eventId}/payment/{participantId} | Register payment |
+| POST | /api/finance/{eventId}/vendor-debt | Add vendor debt |
+| POST | /api/finance/{eventId}/payment-reminders | Trigger payment reminder flow |
+| POST | /api/finance/{eventId}/vendors/{vendorName}/receipts | Upload receipt |
+| GET | /api/finance/receipts/{receiptNumber}/file | Download receipt file |
+
+### Authentication
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | /auth/login | Sign in |
+| POST | /auth/logout | Sign out |
+| GET | /auth/me | Get current authenticated user |
+| POST | /auth/register/participant | Register participant account |
+
+---
+
+## User Interface
+
+The project includes a lightweight SPA embedded in the API, allowing users to manage events without leaving the application context.
+
+### Dashboard Experience
+- Event cards with quick summary details
+- Detail panel with tabs for participants, polls, finance, and host info
+- Responsive layout designed for workstations and tablet usage
+
+### Participant Panel
+- Full participant list with filtering by event
+- Add participant actions
+- Invitation and reminder workflow
+
+### Poll Panel
+- Select an event and view its poll set
+- Vote interactively with visual progress indicators
+- Review current selection status clearly
+
+### Finance Panel
+- KPI cards for revenue, expenses, balance, and payer count
+- Participant payment status table
+- Vendor tracking table
+- Doughnut chart for financial distribution
+
+---
+
+## Business Value
+
+GatherUp bridges the gap between event planning and execution by combining operational coordination with financial transparency and communication automation. It turns a traditionally fragmented planning workflow into one manageable system that helps organizers:
+
+- keep every participant informed
+- collect decisions faster
+- reduce payment uncertainty
+- minimize manual administrative work
+- maintain an auditable digital trail for event-related actions
+
+---
+
+## Project Highlights
+
+- Clean separation between domain, application, and infrastructure layers
+- XML-backed persistence for lightweight local storage
+- Notification bus for decoupled communication logic
+- Event-specific finance and polling views
+- Authentication support with role-based access patterns
+- Ready for extension with databases, external notification providers, or richer front-end integrations
+
+---
+
+## Notes for Development
+
+This project is intentionally designed as a practical business application rather than a pure academic demo. The current implementation stores records in XML files under the application data folder and uses a file-based mail service for notification simulation.
+
+That makes it ideal for:
+
+- learning layered architecture in .NET
+- exploring repository and service patterns
+- practicing business logic design with domain entities
+- understanding how a real-world event platform can be structured in a manageable codebase
+
+---
+
+## License
+
+This project is intended for learning, portfolio, and academic demonstration purposes.
+
+---
+
+## Contact / Project Context
+
+This repository represents a complete event-management solution developed with a strong emphasis on clean architecture, modular services, and practical business workflows.
+
+If you are reviewing the codebase, the most important folders to inspect first are:
+
+- [GatherUp.Core](GatherUp.Core)
+- [GatherUp.BL](GatherUp.BL)
+- [GatherUp.Infrastructure](GatherUp.Infrastructure)
+- [GatherUp.API](GatherUp.API)
+- [GatherUp.UnitTests](GatherUp.UnitTests)
+
+
+---
+
+## Project Structure
+
+```text
 GatherUpSystem/
 │
-├── GatherUp.Core/                  # ❤️ ליבת המערכת
-│   ├── DO/                         # Domain Objects (ישויות)
-│   │   ├── Person.cs               # מחלקת בסיס מופשטת
+├── GatherUp.Core/                  # Core domain layer
+│   ├── DO/                         # Domain objects
+│   │   ├── Person.cs               # Abstract base class
 │   │   ├── EventManager.cs
 │   │   ├── EventHost.cs
 │   │   ├── Participant.cs
@@ -267,52 +347,52 @@ GatherUpSystem/
 │   │   ├── VendorAllocation.cs
 │   │   ├── ReceiptDetails.cs       # Immutable record
 │   │   └── MailingPreference.cs    # Flags enum
-│   ├── IRepository.cs              # ממשק גנרי לאחסון
+│   ├── IRepository.cs              # Generic storage contract
 │   ├── IReceiptRepository.cs
 │   ├── IMailService.cs
-│   └── IEventNotifications.cs      # ממשק Event Bus
+│   └── IEventNotifications.cs      # Event bus contract
 │
-├── GatherUp.BL/                    # 🧠 לוגיקה עסקית
+├── GatherUp.BL/                    # Business logic layer
 │   ├── ParticipantService.cs
 │   ├── FinanceService.cs
 │   ├── PollService.cs
-│   └── EventNotificationBus.cs     # מימוש Event Bus
+│   └── EventNotificationBus.cs     # Event bus implementation
 │
-├── GatherUp.Infrastructure/        # 🗄️ תשתית ואחסון
-│   ├── XMLRepository.cs            # מימוש XML גנרי
-│   ├── MemoryRepository.cs         # מימוש זיכרון (לבדיקות)
-│   ├── FileMailService.cs          # שמירת מיילים לקובץ
-│   ├── ReceiptRepository.cs        # אחסון קבלות + קבצים
+├── GatherUp.Infrastructure/        # Infrastructure and persistence layer
+│   ├── XMLRepository.cs            # Generic XML repository
+│   ├── MemoryRepository.cs         # In-memory repository for testing
+│   ├── FileMailService.cs          # File-based mail logging
+│   ├── ReceiptRepository.cs        # Receipt storage and retrieval
 │   ├── XML/
 │   │   ├── XMLSerializer.cs
 │   │   └── XMLDocManager.cs
 │   └── Data/
-│       └── Initialize.cs           # Seed נתוני דמו
+│       └── Initialize.cs           # Demo data seeding
 │
-├── GatherUp.API/                   # 🌐 שכבת API
+├── GatherUp.API/                   # API layer
 │   ├── Controllers/
 │   │   ├── EventsController.cs
 │   │   ├── ParticipantsController.cs
 │   │   ├── PollsController.cs
 │   │   └── FinanceController.cs
 │   ├── Services/
-│   │   └── CredentialService.cs    # אותנטיקציה + הרשאות
-│   ├── Program.cs                  # DI + Middleware + Minimal API
+│   │   └── CredentialService.cs    # Authentication and role management
+│   ├── Program.cs                  # Dependency injection and middleware setup
 │   ├── GlobalExceptionMiddleware.cs
-│   └── wwwroot/                    # 🎨 ממשק משתמש
+│   └── wwwroot/                    # Frontend assets
 │       ├── index.html
 │       ├── styles.css
 │       └── app.js
 │
-├── GatherUp.UnitTests/             # 🧪 בדיקות יחידה
-└── GatherUp.Tests/                 # 🧪 בדיקות אינטגרציה
+├── GatherUp.UnitTests/             # Unit tests
+└── GatherUp.Tests/                 # Integration tests
 ```
 
 ---
 
-## 🔄 תרשים שכבות
+## Layer Diagram
 
-```
+```text
          ┌──────────────────────────────────┐
          │         Browser / Client         │
          │    (HTML + CSS + JS - SPA)       │
@@ -349,29 +429,22 @@ GatherUpSystem/
 
 ---
 
-## 🧪 הרצת בדיקות
+## Test Execution
 
 ```bash
 dotnet test
 ```
 
-הפרויקט כולל:
-- **בדיקות יחידה** — `GatherUp.UnitTests` (Services + Controllers)
-- **בדיקות אינטגרציה** — `GatherUp.Tests` (WebApplicationFactory end-to-end)
+The project includes:
+- Unit tests in `GatherUp.UnitTests` for services and controllers
+- Integration tests in `GatherUp.Tests` using WebApplicationFactory and end-to-end flow validation
 
 ---
 
-## 📝 הערות
+## Notes
 
-- **אחסון נתונים:** כל הנתונים נשמרים בקובצי XML בתיקיית `Data/` ליד ה-executable
-- **מיילים:** כל המיילים נכתבים לקובץ `mail_log.txt` (לא נשלחים אמיתית)
-- **אימות:** Cookie-based authentication — `HttpOnly`, מוגן מ-XSS
-- **הרשאות:** שתי רמות — `Manager` ו-`Participant`
+- Data storage: all records are stored in XML files under the `Data/` folder next to the executable
+- Mail handling: emails are logged to `mail_log.txt` rather than being sent externally
+- Authentication: cookie-based authentication with `HttpOnly` protection against basic XSS exposure
+- Roles: two access levels are supported, `Manager` and `Participant`
 
----
-
-<div align="center">
-
-**נבנה במסגרת קורס C# מתקדם** 🎓
-
-</div>
