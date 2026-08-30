@@ -1,158 +1,182 @@
 # GatherUp
 
-A full-stack event coordination and finance platform built with C# and ASP.NET Core for managing group activities, participant engagement, polls, billing, and automated communication.
+<div align="center">
 
-> Built as a final-year project focused on backend architecture, business rules, modular design, and practical workflow automation.
+![C#](https://img.shields.io/badge/C%23-.NET%208-512BD4)
+![ASP.NET Core](https://img.shields.io/badge/ASP.NET-Core-512BD4)
+![xUnit](https://img.shields.io/badge/Testing-xUnit-5C2D91)
+![License](https://img.shields.io/badge/License-Project%20Use-blue)
+
+</div>
+
+A modern event coordination platform for managing group gatherings, participant engagement, financial activity, and community decision-making in one place.
+
+> Built with C# and ASP.NET Core to demonstrate clean architecture, domain-driven design, and practical business workflows.
 
 ---
 
 ## Overview
 
-GatherUp is a domain-driven event management system designed to simplify the complexity of organizing group experiences such as family events, corporate gatherings, community meetups, and celebrations.
+GatherUp is designed to streamline event planning and execution for activities such as family celebrations, corporate meetings, social gatherings, and community events. It brings together the main operational needs of organizers into one system: attendance tracking, polling, payment management, notifications, and event coordination.
 
-The platform gives organizers a single place to:
+The platform helps teams and managers:
 
-- manage event details and lifecycle
-- coordinate participants and attendance status
-- collect decisions via interactive polls
-- track payments, vendors, and receipts
-- send reminders and notifications based on preferences
-- maintain a clean, layered architecture with reusable business services
+- organize event details and lifecycle management
+- track participants and attendance status
+- collect decisions through interactive polls
+- manage costs, deposits, and vendor allocations
+- send reminders and updates automatically
+- maintain a clear and structured backend architecture
 
 ---
 
-## Core Capabilities
+## Why It Matters
+
+Traditional event planning often involves scattered tools and manual coordination. GatherUp centralizes those responsibilities into a unified workflow, reducing errors, improving visibility, and giving organizers a reliable view of event progress and financial health.
+
+---
+
+## Key Features
 
 ### Event Management
-- Create and update events with title, description, date, location, and cost details
-- Attach a manager and event host to each event
-- View all events in a unified dashboard
-- Maintain event-specific participant and finance context
+- Create and manage events with title, description, date, location, and pricing details
+- Link a manager and event host to each event
+- Keep all event-related data organized in one place
 
-### Participant Management
-- Register participants under a manager-controlled flow
-- Track attendance confirmations and rejections
-- Send invitations and reminders electronically
-- Store individual communication preferences and status
+### Participant Coordination
+- Register participants in a controlled flow
+- Track confirmation and attendance status
+- Send invitation and reminder actions
+- Store communication preferences per participant
 
 ### Polling and Decision Support
-- Create polls with multiple questions and multiple-choice answers
-- Allow participants to vote and change selections
-- Display aggregated results with visual charts
-- Support event-driven decision making in a transparent, collaborative way
+- Create multiple-question polls with multiple-choice answers
+- Allow participants to vote and update their choice
+- Present results in a clear, visual form
 
-### Finance Tracking
+### Financial Tracking
 - Record participant payments and outstanding balances
-- Track vendor allocations and debts
-- Store invoice or receipt files securely
-- Calculate summary values such as income, expenses, and net balance
-- Trigger reminder flows for pending payments
+- Track vendor liabilities and allocation details
+- Store receipts in a structured way
+- Review income, expenses, and net balance summaries
 
-### Notification Engine
-- Push updates when participant attendance changes
-- Send event updates based on each participant’s mailing preference
-- Notify managers of important actions such as payments and confirmations
-- Support asynchronous communication patterns using a notification bus
+### Notification System
+- Trigger updates based on attendance and payment changes
+- Respect participant communication preferences
+- Send event-related messages through a decoupled notification flow
 
 ---
 
 ## Architecture
 
-The solution uses a layered architecture, separating business logic, infrastructure, and domain responsibilities.
+The solution follows a layered architecture that separates the domain model, business rules, infrastructure, and API concerns.
 
 ```text
-┌─────────────────────────────────────────────┐
-│ GatherUp.API                                │
-│ - Controllers                               │
-│ - Minimal API endpoints                     │
-│ - Static SPA frontend                       │
-├─────────────────────────────────────────────┤
-│ GatherUp.BL                                 │
-│ - Business services                         │
-│ - Application logic                         │
-│ - Event notification orchestration          │
-├─────────────────────────────────────────────┤
-│ GatherUp.Infrastructure                     │
-│ - XML repository implementations            │
-│ - Mail service                              │
-│ - Receipt storage                           │
-├─────────────────────────────────────────────┤
-│ GatherUp.Core                               │
-│ - Entities                                  │
-│ - Interfaces                                │
-│ - Business exceptions                       │
-│ - Shared domain contracts                   │
-└─────────────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│ GatherUp.API                              │
+│ - Controllers                             │
+│ - Minimal API endpoints                   │
+│ - Embedded frontend                      │
+├────────────────────────────────────────────┤
+│ GatherUp.BL                               │
+│ - Application services                   │
+│ - Core business logic                    │
+│ - Notification orchestration             │
+├────────────────────────────────────────────┤
+│ GatherUp.Infrastructure                   │
+│ - XML repositories                       │
+│ - Mail service                           │
+│ - Receipt handling                       │
+├────────────────────────────────────────────┤
+│ GatherUp.Core                             │
+│ - Domain entities                        │
+│ - Interfaces                             │
+│ - Exceptions                            │
+│ - Shared contracts                       │
+└────────────────────────────────────────────┘
 ```
 
-### Design Principles Applied
+### Design Principles
 
-| Principle | Implementation |
-|---|---|
-| Dependency Inversion | Core defines contracts, higher layers depend on abstractions |
-| Repository Pattern | Generic repository interface used with XML and in-memory implementations |
-| Event-Driven Notifications | Event bus decouples business actions from notification dispatch |
-| Immutable Data | Receipt details are stored as immutable records |
-| Async-first I/O | Communication and persistence flows use asynchronous operations |
+- Dependency inversion through abstractions in the core layer
+- Repository pattern for clean persistence abstraction
+- Event-driven notifications for decoupled communication
+- Immutable financial records for data integrity
+- Asynchronous processing for communication and I/O workflows
 
 ---
 
-## Domain Model
+## Core Domain Model
 
 ```text
 Person (abstract)
-├── EventManager     - manages the dashboard and event lifecycle
-├── EventHost        - owner or coordinator of the event
-└── Participant      - registered attendee with status, payment, and preferences
+├── EventManager
+├── EventHost
+└── Participant
 
-Event               - central entity for a gathering or meeting
-VendorAllocation    - supplier and cost breakdown information
-ReceiptDetails      - immutable financial receipt metadata
-Poll                - collection of questions and choices
-PollQuestion        - question and participant voting options
+Event
+VendorAllocation
+ReceiptDetails
+Poll
+PollQuestion
 ```
 
 ### Mailing Preference Enum
 
 ```csharp
 None                 = 0
-ImportantUpdatesOnly = 1   // time/location changes
-AllUpdates           = 2   // general notifications
-DirectMessages       = 4   // manager direct messages
-Everything           = 7   // all communication
+ImportantUpdatesOnly = 1
+AllUpdates           = 2
+DirectMessages       = 4
+Everything           = 7
 ```
 
 ---
 
-## Tech Stack
+## Technology Stack
 
-| Technology | Purpose |
+| Technology | Role |
 |---|---|
-| C# / .NET 8 | Main application language and runtime |
-| ASP.NET Core | API framework, routing, middleware, static assets |
-| XML Serialization | Persistent local data storage |
-| Bootstrap 5 | UI styling and responsive layout |
-| Bootstrap Icons | Visual iconography |
-| Chart.js | Financial and poll result visualization |
-| xUnit | Unit and integration testing |
+| C# / .NET 8 | Application runtime and primary language |
+| ASP.NET Core | API, routing, middleware, static hosting |
+| XML Serialization | Lightweight local persistence |
+| Bootstrap | Interface styling and layout |
+| Chart.js | Poll and financial visualization |
+| xUnit | Automated testing |
 
 ---
 
-## Solution Structure
+## Project Structure
 
 ```text
 GatherUpSystem/
-├── GatherUp.API/                 # Web API and frontend assets
+├── GatherUp.API/
 │   ├── Controllers/
 │   ├── Services/
 │   ├── wwwroot/
-│   └── Program.cs
-├── GatherUp.BL/                  # Business logic and domain services
-├── GatherUp.Core/                # Core entities, abstractions, exceptions
-├── GatherUp.Infrastructure/      # Data access and mail/receipt services
-├── GatherUp.UnitTests/           # Automated tests
-├── GatherUp.Tests/               # Additional testing project
-├── GatherUpSysTem.sln            # Visual Studio solution file
+│   ├── Program.cs
+│   └── GlobalExceptionMiddleware.cs
+├── GatherUp.BL/
+│   ├── ParticipantService.cs
+│   ├── FinanceService.cs
+│   ├── PollService.cs
+│   └── EventNotificationBus.cs
+├── GatherUp.Core/
+│   ├── DO/
+│   ├── Exceptions/
+│   ├── IEntity.cs
+│   ├── IRepository.cs
+│   ├── IReceiptRepository.cs
+│   └── IMailService.cs
+├── GatherUp.Infrastructure/
+│   ├── XMLRepository.cs
+│   ├── MemoryRepository.cs
+│   ├── FileMailService.cs
+│   ├── ReceiptRepository.cs
+│   └── XML/
+├── GatherUp.UnitTests/
+├── GatherUp.Tests/
+├── GatherUpSysTem.sln
 ├── README.md
 └── .gitignore
 ```
@@ -163,7 +187,7 @@ GatherUpSystem/
 
 ### Prerequisites
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
-- An IDE such as Visual Studio or VS Code
+- Visual Studio or VS Code
 
 ### Run the application
 
@@ -173,7 +197,7 @@ dotnet restore
 dotnet run --project GatherUp.API
 ```
 
-Then open the URL shown in the terminal, typically:
+Then open the local URL printed in the terminal, usually:
 
 ```text
 http://localhost:5000
@@ -185,7 +209,7 @@ http://localhost:5000
 |---|---|---|
 | Manager | admin@example.com | admin |
 
-> The application seeds demo data in development mode to make testing and UI exploration easier.
+> Demo data is seeded automatically in development mode for easier testing.
 
 ---
 
@@ -193,258 +217,110 @@ http://localhost:5000
 
 ### Events
 
-| Method | Endpoint | Description |
+| Method | Endpoint | Purpose |
 |---|---|---|
-| GET | /api/events | Get all events |
-| GET | /api/events/{id} | Get specific event details |
+| GET | /api/events | List all events |
+| GET | /api/events/{id} | Get event details |
 | POST | /api/events | Create a new event |
-| PUT | /api/events/{id} | Update an existing event |
+| PUT | /api/events/{id} | Update an event |
 | DELETE | /api/events/{id} | Delete an event |
-| GET | /api/events/{id}/participants | Get event participants |
-| GET | /api/events/{id}/polls | Get event polls |
-| POST | /api/events/{id}/host | Set an event host |
 
 ### Participants
 
-| Method | Endpoint | Description |
+| Method | Endpoint | Purpose |
 |---|---|---|
-| GET | /api/participants | Get all participants |
-| GET | /api/participants/{id} | Get participant details |
-| POST | /api/participants/{eventId} | Add participant to event |
+| GET | /api/participants | List participants |
+| GET | /api/participants/{id} | Fetch participant details |
+| POST | /api/participants/{eventId} | Add participant |
 | POST | /api/participants/{eventId}/confirm/{participantId} | Confirm or reject attendance |
-| POST | /api/participants/{eventId}/invitations | Send invitations |
-| POST | /api/participants/{eventId}/reminders | Send reminders |
 
 ### Polls
 
-| Method | Endpoint | Description |
+| Method | Endpoint | Purpose |
 |---|---|---|
 | POST | /api/polls/{eventId} | Create a poll |
-| GET | /api/polls/{id} | Get poll details |
+| GET | /api/polls/{id} | Get poll data |
 | GET | /api/polls/{pollId}/results | View poll results |
 | POST | /api/polls/{pollId}/vote | Cast a vote |
 
 ### Finance
 
-| Method | Endpoint | Description |
+| Method | Endpoint | Purpose |
 |---|---|---|
 | GET | /api/finance/{eventId}/summary | View financial summary |
-| POST | /api/finance/{eventId}/payment/{participantId} | Register payment |
+| POST | /api/finance/{eventId}/payment/{participantId} | Register a payment |
 | POST | /api/finance/{eventId}/vendor-debt | Add vendor debt |
-| POST | /api/finance/{eventId}/payment-reminders | Trigger payment reminder flow |
-| POST | /api/finance/{eventId}/vendors/{vendorName}/receipts | Upload receipt |
-| GET | /api/finance/receipts/{receiptNumber}/file | Download receipt file |
+| POST | /api/finance/{eventId}/payment-reminders | Send payment reminders |
 
 ### Authentication
 
-| Method | Endpoint | Description |
+| Method | Endpoint | Purpose |
 |---|---|---|
 | POST | /auth/login | Sign in |
 | POST | /auth/logout | Sign out |
-| GET | /auth/me | Get current authenticated user |
-| POST | /auth/register/participant | Register participant account |
+| GET | /auth/me | Get authenticated user |
+| POST | /auth/register/participant | Register a participant |
 
 ---
 
-## User Interface
+## User Experience
 
-The project includes a lightweight SPA embedded in the API, allowing users to manage events without leaving the application context.
+The project includes a lightweight embedded SPA that lets users manage the main workflow directly from the application interface without switching tools.
 
-### Dashboard Experience
-- Event cards with quick summary details
-- Detail panel with tabs for participants, polls, finance, and host info
-- Responsive layout designed for workstations and tablet usage
-
-### Participant Panel
-- Full participant list with filtering by event
-- Add participant actions
-- Invitation and reminder workflow
-
-### Poll Panel
-- Select an event and view its poll set
-- Vote interactively with visual progress indicators
-- Review current selection status clearly
+### Dashboard
+- Event cards with summary information
+- Detail panels for participants, polls, finance, and host data
+- Responsive layout for practical use
 
 ### Finance Panel
-- KPI cards for revenue, expenses, balance, and payer count
-- Participant payment status table
-- Vendor tracking table
-- Doughnut chart for financial distribution
+- Revenue, expenses, balance, and payer indicators
+- Payment status tables
+- Vendor tracking and receipt handling
+
+### Poll Panel
+- Event-based polling workflow
+- Voting interactions with clear visual feedback
 
 ---
 
 ## Business Value
 
-GatherUp bridges the gap between event planning and execution by combining operational coordination with financial transparency and communication automation. It turns a traditionally fragmented planning workflow into one manageable system that helps organizers:
-
-- keep every participant informed
-- collect decisions faster
-- reduce payment uncertainty
-- minimize manual administrative work
-- maintain an auditable digital trail for event-related actions
+GatherUp is more than a demo project. It represents a realistic operational system that helps organizations coordinate events more effectively while improving transparency, reducing manual effort, and keeping communication consistent.
 
 ---
 
-## Project Highlights
+## Testing
 
-- Clean separation between domain, application, and infrastructure layers
-- XML-backed persistence for lightweight local storage
-- Notification bus for decoupled communication logic
-- Event-specific finance and polling views
-- Authentication support with role-based access patterns
-- Ready for extension with databases, external notification providers, or richer front-end integrations
+```bash
+dotnet test
+```
+
+This project includes:
+- unit tests for core business logic and controllers
+- integration tests for end-to-end behavior validation
 
 ---
 
-## Notes for Development
+## Notes
 
-This project is intentionally designed as a practical business application rather than a pure academic demo. The current implementation stores records in XML files under the application data folder and uses a file-based mail service for notification simulation.
-
-That makes it ideal for:
-
-- learning layered architecture in .NET
-- exploring repository and service patterns
-- practicing business logic design with domain entities
-- understanding how a real-world event platform can be structured in a manageable codebase
+- Data is stored locally in XML files under the application’s data folder
+- Email notifications are logged to a local file instead of being sent externally
+- Authentication uses cookie-based session management with role awareness
+- Supported roles include `Manager` and `Participant`
 
 ---
 
 ## License
 
-This project is intended for learning, portfolio, and academic demonstration purposes.
+This project is intended for learning, portfolio development, and academic demonstration purposes.
 
 ---
 
-## Contact / Project Context
-
-This repository represents a complete event-management solution developed with a strong emphasis on clean architecture, modular services, and practical business workflows.
-
-If you are reviewing the codebase, the most important folders to inspect first are:
+## Main Project Areas
 
 - [GatherUp.Core](GatherUp.Core)
 - [GatherUp.BL](GatherUp.BL)
 - [GatherUp.Infrastructure](GatherUp.Infrastructure)
 - [GatherUp.API](GatherUp.API)
 - [GatherUp.UnitTests](GatherUp.UnitTests)
-
-
----
-
-## Project Structure
-
-```text
-GatherUpSystem/
-│
-├── GatherUp.Core/                  # Core domain layer
-│   ├── DO/                         # Domain objects
-│   │   ├── Person.cs               # Abstract base class
-│   │   ├── EventManager.cs
-│   │   ├── EventHost.cs
-│   │   ├── Participant.cs
-│   │   ├── Event.cs
-│   │   ├── Poll.cs
-│   │   ├── PollQuestion.cs
-│   │   ├── VendorAllocation.cs
-│   │   ├── ReceiptDetails.cs       # Immutable record
-│   │   └── MailingPreference.cs    # Flags enum
-│   ├── IRepository.cs              # Generic storage contract
-│   ├── IReceiptRepository.cs
-│   ├── IMailService.cs
-│   └── IEventNotifications.cs      # Event bus contract
-│
-├── GatherUp.BL/                    # Business logic layer
-│   ├── ParticipantService.cs
-│   ├── FinanceService.cs
-│   ├── PollService.cs
-│   └── EventNotificationBus.cs     # Event bus implementation
-│
-├── GatherUp.Infrastructure/        # Infrastructure and persistence layer
-│   ├── XMLRepository.cs            # Generic XML repository
-│   ├── MemoryRepository.cs         # In-memory repository for testing
-│   ├── FileMailService.cs          # File-based mail logging
-│   ├── ReceiptRepository.cs        # Receipt storage and retrieval
-│   ├── XML/
-│   │   ├── XMLSerializer.cs
-│   │   └── XMLDocManager.cs
-│   └── Data/
-│       └── Initialize.cs           # Demo data seeding
-│
-├── GatherUp.API/                   # API layer
-│   ├── Controllers/
-│   │   ├── EventsController.cs
-│   │   ├── ParticipantsController.cs
-│   │   ├── PollsController.cs
-│   │   └── FinanceController.cs
-│   ├── Services/
-│   │   └── CredentialService.cs    # Authentication and role management
-│   ├── Program.cs                  # Dependency injection and middleware setup
-│   ├── GlobalExceptionMiddleware.cs
-│   └── wwwroot/                    # Frontend assets
-│       ├── index.html
-│       ├── styles.css
-│       └── app.js
-│
-├── GatherUp.UnitTests/             # Unit tests
-└── GatherUp.Tests/                 # Integration tests
-```
-
----
-
-## Layer Diagram
-
-```text
-         ┌──────────────────────────────────┐
-         │         Browser / Client         │
-         │    (HTML + CSS + JS - SPA)       │
-         └─────────────┬────────────────────┘
-                       │ HTTP
-         ┌─────────────▼────────────────────┐
-         │          GatherUp.API            │
-         │   Controllers + Minimal API      │
-         │   Auth Middleware + Exception     │
-         └──────┬──────────────┬────────────┘
-                │              │
-    ┌───────────▼──┐    ┌──────▼──────────┐
-    │  GatherUp.BL │    │  CredentialSvc  │
-    │  Services +  │    │  (Auth/Roles)   │
-    │  EventBus    │    └─────────────────┘
-    └───────┬──────┘
-            │
-    ┌───────▼──────────────────────────────┐
-    │        GatherUp.Infrastructure       │
-    │   XMLRepository + FileMailService    │
-    │   ReceiptRepository + XMLDocManager  │
-    └───────┬──────────────────────────────┘
-            │
-    ┌───────▼──────────────────────────────┐
-    │           GatherUp.Core              │
-    │   Entities + Interfaces + Exceptions │
-    └──────────────────────────────────────┘
-            │
-    ┌───────▼──────────────────────────────┐
-    │         XML Files (Local)            │
-    │  Events.xml, Participants.xml, ...   │
-    └──────────────────────────────────────┘
-```
-
----
-
-## Test Execution
-
-```bash
-dotnet test
-```
-
-The project includes:
-- Unit tests in `GatherUp.UnitTests` for services and controllers
-- Integration tests in `GatherUp.Tests` using WebApplicationFactory and end-to-end flow validation
-
----
-
-## Notes
-
-- Data storage: all records are stored in XML files under the `Data/` folder next to the executable
-- Mail handling: emails are logged to `mail_log.txt` rather than being sent externally
-- Authentication: cookie-based authentication with `HttpOnly` protection against basic XSS exposure
-- Roles: two access levels are supported, `Manager` and `Participant`
 
